@@ -1,166 +1,74 @@
-#  User Service
+# User Service
 
-A RESTful microservice handling user authentication, registration, and profile management for the platform. Built with **Express**, **TypeScript**, **Prisma**, and **PostgreSQL**.
+Handles user auth, registration, and profiles. Four roles: `USER`, `RESTAURANT`, `DELIVERY_AGENT`, `ADMIN`.
 
----
+## Stack
 
-## Table of Contents
+Node.js · Express · TypeScript · Prisma · PostgreSQL · Zod · Multer · Cloudinary · JWT · Vitest
 
-- [Overview](#overview)
-- [Tech Stack](#tech-stack)
-- [Project Structure](#project-structure)
-- [Database Schema](#database-schema)
-- [Getting Started](#getting-started)
-- [Environment Variables](#environment-variables)
-- [API Reference](#api-reference)
-- [Authentication](#authentication)
-- [Error Handling](#error-handling)
-- [Running Tests](#running-tests)
-
----
-
-## Overview
-
-User Service manages four distinct user roles — `USER`, `RESTAURANT`, `DELIVERY_AGENT`, and `ADMIN` — each with their own registration flow, profile data, and access rules.
-
-- `USER` — Standard customer. Receives tokens immediately on registration.
-- `RESTAURANT` — Requires admin verification before login is permitted.
-- `DELIVERY_AGENT` — Requires admin verification before login is permitted.
-- `ADMIN` — Full platform access. Can verify restaurants and delivery agents.
-
-Profile images are uploaded to **Cloudinary** before registration data is persisted to the database.
-
----
-
-## Tech Stack
-
-| Layer | Technology |
-|---|---|
-| Runtime | Node.js |
-| Language | TypeScript |
-| Framework | Express |
-| ORM | Prisma |
-| Database | PostgreSQL |
-| Validation | Zod |
-| File Upload | Multer + Cloudinary |
-| Auth | JWT (access + refresh tokens) |
-| Testing | Vitest |
-
----
-
-## Project Structure
+## Folder Structure
 
 ```
-src/
-├── controllers/        # Request handlers
-│   ├── register.controller.ts
-│   ├── login.controller.ts
-│   ├── logout.controller.ts
-│   ├── refresh.controller.ts
-│   ├── verify.controller.ts
-│   └── profile.controller.ts
-├── services/           # Business logic
-│   ├── register.service.ts
-│   ├── login.service.ts
-│   ├── logout.service.ts
-│   ├── refresh.service.ts
-│   ├── verify.service.ts
-│   └── profile.service.ts
-├── middlewares/
-│   ├── authenticate.ts     # Verifies JWT, attaches req.user
-│   ├── requireAdmin.ts     # Guards admin-only routes
-│   └── errorHandler.ts     # Global error handler
-├── schemas/
-│   └── user.schema.ts      # Zod schemas + inferred types
-├── utils/
-│   ├── cloudinary.ts
-│   ├── hash.ts
-│   ├── jwt.ts
-│   ├── multer.ts
-│   └── prismaClient.ts
-└── routes/
-    └── user.route.ts
-tests/
-├── register.controller.test.ts
-├── register.service.test.ts
-├── login.controller.test.ts
-├── login.service.test.ts
-├── verify.controller.test.ts
-├── verify.service.test.ts
-├── profile.controller.test.ts
-└── profile.service.test.ts
-generated/
-└── prisma/             # Prisma generated client
+user-service/
+├── src/
+│   ├── controllers/
+│   ├── services/
+│   ├── middlewares/
+│   ├── schemas/
+│   ├── utils/
+│   │   ├── multer.ts       # stores upload in /public/temp before cloudinary
+│   │   └── cloudinary.ts   # uploads file, returns url, deletes local temp
+│   └── routes/
+├── tests/
+└── generated/prisma/
 ```
 
----
-
-## Database Schema
-
-```
-User
- ├── id, name, email, password, phoneNumber, imageUrl, role, refreshToken
- ├── Address        (1:1) — city, address, streetNumber, latitude, longitude
- ├── Restaurant     (1:1) — panNumber, paymentGateway, merchantId, imageUrl, isVerified, isBlockListed
- ├── DeliveryAgent  (1:1) — vehicleNumber, licenseNumber, licenseImageUrl, paymentGateway, merchantId, isVerified
- └── Admin          (1:1)
-```
-
----
-
-## Getting Started
+## Setup
 
 ```bash
-# Install dependencies
 npm install
-
-# Set up environment variables
 cp .env.example .env
-
-# Run database migrations
+npx prisma generate
 npx prisma migrate dev
-
-# Start development server
 npm run dev
-
-# Build for production
-npm run build
-npm start
 ```
-
----
 
 ## Environment Variables
 
 ```env
-DATABASE_URL=postgresql://user:password@localhost:5432/servio
-ACCESS_TOKEN_SECRET=your_access_token_secret
-REFRESH_TOKEN_SECRET=your_refresh_token_secret
-CLOUDINARY_CLOUD_NAME=your_cloud_name
-CLOUDINARY_API_KEY=your_api_key
-CLOUDINARY_API_SECRET=your_api_secret
+DATABASE_URL=
+ACCESS_TOKEN_SECRET=
+REFRESH_TOKEN_SECRET=
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
 NODE_ENV=development
 PORT=3000
 ```
 
 ---
 
-## API Reference
+## Endpoints
 
-Base URL: `http://localhost:3000/api/v1/servio/user`
+Base: `http://localhost:3000/api/v1/servio/user`
 
 ---
 
 ### POST `/register`
 
-Registers a new user. Accepts `multipart/form-data` with a JSON `data` field and an optional `image` file.
-
 **Content-Type:** `multipart/form-data`
 
-| Form Field | Type | Description |
+Multer accepts a single file under the field name `image`. The file is saved temporarily to `/public/temp`, uploaded to Cloudinary, and the returned URL is stored in the database. The rest of the body goes in a `data` field as a JSON string.
+
+| Field | Type | Description |
 |---|---|---|
 | `data` | Text | JSON string of the registration body |
-| `image` | File | Profile / restaurant / license image (optional) |
+| `image` | File | Optional. Stored on Cloudinary. |
+
+Image is saved to:
+- `user.imageUrl` for `USER`
+- `restaurant.imageUrl` for `RESTAURANT`
+- `deliveryAgent.licenseImageUrl` for `DELIVERY_AGENT`
 
 **Role: USER**
 ```json
@@ -180,7 +88,7 @@ Registers a new user. Accepts `multipart/form-data` with a JSON `data` field and
 }
 ```
 
-**Role: RESTAURANT** — `image` saved as `restaurant.imageUrl`. Requires admin verification.
+**Role: RESTAURANT** — requires admin verification before login
 ```json
 {
   "role": "RESTAURANT",
@@ -199,7 +107,7 @@ Registers a new user. Accepts `multipart/form-data` with a JSON `data` field and
 }
 ```
 
-**Role: DELIVERY_AGENT** — `image` saved as `deliveryAgent.licenseImageUrl`. Requires admin verification.
+**Role: DELIVERY_AGENT** — requires admin verification before login
 ```json
 {
   "role": "DELIVERY_AGENT",
@@ -236,23 +144,21 @@ Registers a new user. Accepts `multipart/form-data` with a JSON `data` field and
 }
 ```
 
-**Responses:**
-
-`201` — USER / ADMIN (tokens issued immediately)
+**Response: USER / ADMIN** `201`
 ```json
 {
   "success": true,
   "accessToken": "<jwt>",
-  "user": { "id": 1, "role": "USER", "name": "...", "email": "...", "phoneNumber": "...", "imageUrl": null }
+  "user": { "id": 1, "role": "USER", "name": "Bikash Sharma", "email": "bikash@example.com", "phoneNumber": "+9779800000000", "imageUrl": null }
 }
 ```
 
-`201` — RESTAURANT / DELIVERY_AGENT (pending activation)
+**Response: RESTAURANT / DELIVERY_AGENT** `201`
 ```json
 {
   "success": true,
   "message": "Your information has been gathered. You will receive an email once your account is activated.",
-  "user": { ... }
+  "user": { "id": 2, "role": "RESTAURANT" }
 }
 ```
 
@@ -269,32 +175,32 @@ Registers a new user. Accepts `multipart/form-data` with a JSON `data` field and
 }
 ```
 
-`200`
+**Response** `200`
 ```json
 {
   "success": true,
   "accessToken": "<jwt>",
-  "user": { "id": 1, "role": "USER", "name": "...", "email": "...", "phoneNumber": "...", "imageUrl": null }
+  "user": { "id": 1, "role": "USER", "name": "Bikash Sharma", "email": "bikash@example.com", "phoneNumber": "+9779800000000", "imageUrl": null }
 }
 ```
 
-Sets `refreshToken` as an `httpOnly` cookie.
+Sets `refreshToken` as an `httpOnly` cookie valid for 7 days.
 
-| Error | Status | Reason |
-|---|---|---|
-| `INVALID_CREDENTIALS` | 401 | Wrong email or password |
-| `ACCOUNT_PENDING` | 403 | Not yet verified by admin |
-| `ACCOUNT_BLOCKED` | 403 | Restaurant has been blocklisted |
+| Error | Status |
+|---|---|
+| Wrong email or password | 401 |
+| Account not yet verified | 403 |
+| Restaurant blocklisted | 403 |
 
 ---
 
 ### POST `/logout`
 
-**Auth required:** Bearer token
+**Auth:** `Authorization: Bearer <token>`
 
-No request body. Clears the `refreshToken` cookie and invalidates the token in the database.
+No body. Clears the refresh cookie and removes the token from the database.
 
-`200`
+**Response** `200`
 ```json
 { "success": true, "message": "Logged out successfully." }
 ```
@@ -303,11 +209,11 @@ No request body. Clears the `refreshToken` cookie and invalidates the token in t
 
 ### POST `/refresh`
 
-Issues a new access token using the refresh token cookie.
+**Auth:** `refreshToken` cookie (set on login automatically)
 
-**Auth:** `refreshToken` cookie (set automatically on login)
+No body.
 
-`200`
+**Response** `200`
 ```json
 { "success": true, "accessToken": "<new_jwt>" }
 ```
@@ -316,25 +222,19 @@ Issues a new access token using the refresh token cookie.
 
 ### POST `/verify`
 
-**Auth required:** Bearer token (ADMIN only)
+**Auth:** `Authorization: Bearer <token>` (ADMIN only)
 
-Verifies a restaurant or delivery agent, allowing them to log in.
+**Content-Type:** `application/json`
 
 ```json
-{
-  "role": "RESTAURANT",
-  "id": 1
-}
+{ "role": "RESTAURANT", "id": 1 }
 ```
 
 ```json
-{
-  "role": "DELIVERY_AGENT",
-  "id": 2
-}
+{ "role": "DELIVERY_AGENT", "id": 2 }
 ```
 
-`200`
+**Response** `200`
 ```json
 { "success": true, "message": "Restaurant verified successfully." }
 ```
@@ -343,11 +243,11 @@ Verifies a restaurant or delivery agent, allowing them to log in.
 
 ### GET `/profile`
 
-**Auth required:** Bearer token
+**Auth:** `Authorization: Bearer <token>`
 
-Returns the authenticated user's profile. Response shape varies by role — only the relevant related table is included.
+No body. Returns profile based on the role in the token.
 
-`200` — USER
+**Response: USER** `200`
 ```json
 {
   "success": true,
@@ -360,58 +260,42 @@ Returns the authenticated user's profile. Response shape varies by role — only
 }
 ```
 
-`200` — RESTAURANT (includes `restaurant` object)
+**Response: RESTAURANT** — same as above plus:
+```json
+{
+  "restaurant": { "id": 1, "panNumber": "PAN123456", "paymentGateway": "E_SEWA", "merchantId": "MID001", "imageUrl": null, "isVerified": true, "isBlockListed": false }
+}
+```
 
-`200` — DELIVERY_AGENT (includes `deliveryAgent` object)
+**Response: DELIVERY_AGENT** — same as above plus:
+```json
+{
+  "deliveryAgent": { "id": 1, "vehicleNumber": "BA 1 CHA 2345", "licenseNumber": "LIC-98765", "licenseImageUrl": null, "isVerified": false }
+}
+```
 
-`200` — ADMIN (includes `adminProfile` object)
+**Response: ADMIN** — same as above plus:
+```json
+{
+  "adminProfile": { "id": 1 }
+}
+```
 
 ---
 
 ### GET `/health`
 
-`200`
+**Response** `200`
 ```json
 { "success": true, "message": "OK" }
 ```
 
 ---
 
-## Authentication
-
-The service uses two JWTs:
-
-- **Access Token** — Short-lived, sent in the `Authorization: Bearer <token>` header.
-- **Refresh Token** — Long-lived (7 days), stored as an `httpOnly` cookie and persisted in the database. Used by `POST /refresh` to issue new access tokens.
-
----
-
-## Error Handling
-
-All errors flow through the global error handler in `src/middlewares/errorHandler.ts`.
-
-| Error Type | Status | Description |
-|---|---|---|
-| Zod validation failure | 400 | Invalid request body |
-| Duplicate field (Prisma P2002) | 409 | email, phoneNumber, licenseNumber, etc. already in use |
-| `Error` with known message | 400 | Business logic errors (not found, already verified, etc.) |
-| Unhandled | 500 | Internal server error |
-
----
-
-## Running Tests
+## Tests
 
 ```bash
-# Run all tests once
 npm test
-
-# Watch mode
 npm run test:watch
-
-# Coverage report
 npm run test:coverage
 ```
-
-Tests are located in the `tests/` directory and use **Vitest** with full mocking of Prisma, Cloudinary, and JWT utilities. All services and controllers have unit test coverage across every branch.#   u s e r - s e r v i c e 
- 
- 
