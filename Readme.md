@@ -412,5 +412,6 @@ npm run test:watch
 npm run test:coverage
 ```
 
-Tests are located in the `tests/` directory and use **Vitest** with full mocking of Prisma, Cloudinary, and JWT utilities. All services and controllers have unit test coverage across every branch.#   u s e r - s e r v i c e  
+Tests are located in the `tests/` directory and use **Vitest** with full mocking of Prisma, Cloudinary, and JWT utilities. All services and controllers have unit test coverage across every branch.#   u s e r - s e r v i c e 
+ 
  
