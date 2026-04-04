@@ -1,0 +1,82 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  USER
+  ADMIN
+  DELIVERY_AGENT
+  RESTAURANT
+}
+
+model User {
+  id            Int            @id @default(autoincrement())
+  role          Role           @default(USER)
+  name          String
+  email         String         @unique
+  password      String
+  phoneNumber   String         @unique
+  imageUrl      String?
+  refreshToken  String?
+  address       Address?
+  restaurant    Restaurant?
+  deliveryAgent DeliveryAgent?
+  adminProfile  Admin?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Restaurant {
+  id             Int     @id @default(autoincrement())
+  panNumber      String  @unique
+  paymentGateway String  @default("E_SEWA")
+  merchantId     String? @unique
+  isVerified     Boolean @default(false)
+  isBlockListed  Boolean @default(false)
+  imageUrl       String?
+  userId         Int     @unique
+  user           User    @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model DeliveryAgent {
+  id              Int     @id @default(autoincrement())
+  vehicleNumber   String
+  licenseNumber   String  @unique
+  licenseImageUrl String?
+  isVerified      Boolean @default(false)
+  paymentGateway  String  @default("E_SEWA")
+  merchantId      String? @unique
+  userId          Int     @unique
+  user            User    @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Address {
+  id           Int    @id @default(autoincrement())
+  city         String
+  address      String
+  streetNumber String
+
+  latitude  Float?
+  longitude Float?
+
+  userId Int  @unique
+  user   User @relation(fields: [userId], references: [id])
+}
+
+model Admin {
+  id     Int  @id @default(autoincrement())
+  userId Int  @unique
+  user   User @relation(fields: [userId], references: [id])
+}

@@ -1,0 +1,8 @@
+node_modules;
+dist;
+generated.env.env.tsbuildinfo;
+tsconfig.tsbuildinfo;
+tests.test.ts;
+coverage.git.gitignore;
+README.md.log;
+npm - debug.log;
