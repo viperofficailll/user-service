@@ -3,9 +3,9 @@ import type { Request, Response, NextFunction } from "express";
 import {
   userRegisterHandler,
   healthtest,
-} from "../user-service/src/controllers/register.controller.js";
-import * as registerServiceModule from "../user-service/src/services/register.service.js";
-import * as cloudinaryModule from "../user-service/src/utils/cloudinary.js";
+} from "../src/controllers/register.controller.js";
+import * as registerServiceModule from "../src/services/register.service.js";
+import * as cloudinaryModule from "../src/utils/cloudinary.js";
 import { Role } from "../generated/prisma/enums.js";
 
 vi.mock("../user-service/src/services/register.service.js");

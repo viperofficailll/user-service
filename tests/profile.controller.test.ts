@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { Request, Response, NextFunction } from "express";
-import { profileHandler } from "../user-service/src/controllers/profile.controller.js";
-import * as profileServiceModule from "../user-service/src/services/profile.service.js";
+import { profileHandler } from "../src/controllers/profile.controller.js";
+import * as profileServiceModule from "../src/services/profile.service.js";
 
 vi.mock("../user-service/src/services/profile.service.js");
 

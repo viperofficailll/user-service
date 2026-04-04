@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { registerService } from "../user-service/src/services/register.service.js";
-import { prisma } from "../user-service/src/utils/prismaClient.js";
-import * as hashUtils from "../user-service/src/utils/hash.js";
-import * as jwtUtils from "../user-service/src/utils/jwt.js";
+import { registerService } from "../src/services/register.service.js";
+import { prisma } from "../src/utils/prismaClient.js";
+import * as hashUtils from "../src/utils/hash.js";
+import * as jwtUtils from "../src/utils/jwt.js";
 import { Role } from "../generated/prisma/enums.js";
 
-vi.mock("../user-service/src/utils/prismaClient.js", () => ({
+vi.mock("../src/utils/prismaClient.js", () => ({
   prisma: {
     user: {
       findFirst: vi.fn(),
@@ -15,11 +15,11 @@ vi.mock("../user-service/src/utils/prismaClient.js", () => ({
   },
 }));
 
-vi.mock("../user-service/src/utils/hash.js", () => ({
+vi.mock("../src/utils/hash.js", () => ({
   hashPassword: vi.fn().mockResolvedValue("hashed_password"),
 }));
 
-vi.mock("../user-service/src/utils/jwt.js", () => ({
+vi.mock("../src/utils/jwt.js", () => ({
   signAccessToken: vi.fn().mockReturnValue("access_token"),
   signRefreshToken: vi.fn().mockReturnValue("refresh_token"),
 }));
