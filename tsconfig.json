@@ -41,6 +41,6 @@
     "moduleDetection": "force",
     "skipLibCheck": true
   },
-  "include": ["user-service/src/**/*.ts", "generated/prisma/**/*.ts"],
+  "include": ["user-service/src/**/*.ts", "generated/prisma/**/*.ts", "src/server.ts"],
   "exclude": ["node_modules", "dist"]
 }

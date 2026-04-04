@@ -14,7 +14,7 @@ user-service/
 │   ├── controllers/
 │   ├── services/
 │   ├── middlewares/
-│   ├── schemas/
+│   ├── schemas/           # strores definations for all. 
 │   ├── utils/
 │   │   ├── multer.ts       # stores upload in /public/temp before cloudinary
 │   │   └── cloudinary.ts   # uploads file, returns url, deletes local temp

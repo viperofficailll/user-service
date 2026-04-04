@@ -3,4 +3,4 @@ WORKDIR /app
 COPY . .
 RUN npm i
 RUN npx tsc -b
-CMD ["node", "dist/user-service/src/server.js"]
+CMD ["node", "dist/src/server.js"]

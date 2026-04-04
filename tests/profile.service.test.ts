@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { profileService } from "../user-service/src/services/profile.service.js";
-import { prisma } from "../user-service/src/utils/prismaClient.js";
+import { profileService } from "../src/services/profile.service.js";
+import { prisma } from "../src/utils/prismaClient.js";
 
-vi.mock("../user-service/src/utils/prismaClient.js", () => ({
+vi.mock("../src/utils/prismaClient.js", () => ({
   prisma: {
     user: {
       findUnique: vi.fn(),

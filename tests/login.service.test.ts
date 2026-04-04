@@ -1,10 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { loginService } from "../user-service/src/services/login.service.js";
-import { prisma } from "../user-service/src/utils/prismaClient.js";
-import * as hashUtils from "../user-service/src/utils/hash.js";
-import * as jwtUtils from "../user-service/src/utils/jwt.js";
+import { loginService } from "../src/services/login.service";
+import { prisma } from "../src/utils/prismaClient";
+import * as hashUtils from "../src/utils/hash";
 
-vi.mock("../user-service/src/utils/prismaClient.js", () => ({
+vi.mock("../src/utils/prismaClient.js", () => ({
   prisma: {
     user: {
       findUnique: vi.fn(),
@@ -13,11 +12,11 @@ vi.mock("../user-service/src/utils/prismaClient.js", () => ({
   },
 }));
 
-vi.mock("../user-service/src/utils/hash.js", () => ({
+vi.mock("../src/utils/hash.js", () => ({
   comparePassword: vi.fn(),
 }));
 
-vi.mock("../user-service/src/utils/jwt.js", () => ({
+vi.mock("../src/utils/jwt.js", () => ({
   signAccessToken: vi.fn().mockReturnValue("access_token"),
   signRefreshToken: vi.fn().mockReturnValue("refresh_token"),
 }));

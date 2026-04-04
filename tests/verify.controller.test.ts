@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { Request, Response, NextFunction } from "express";
-import { verifyHandler } from "../user-service/src/controllers/verify.controller.js";
-import * as verifyServiceModule from "../user-service/src/services/verfiy.service.js";
+import { verifyHandler } from "../src/controllers/verify.controller.js";
+import * as verifyServiceModule from "../src/services/verfiy.service.js";
 
 vi.mock("../user-service/src/services/verfiy.service.js"); // ← matches import path exactly
 
@@ -22,14 +22,18 @@ describe("verifyHandler", () => {
       const res = mockRes();
       await verifyHandler(mockReq({ id: 1 }), res, mockNext);
       expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ success: false }));
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({ success: false }),
+      );
     });
 
     it("returns 400 if id is missing", async () => {
       const res = mockRes();
       await verifyHandler(mockReq({ role: "RESTAURANT" }), res, mockNext);
       expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ success: false }));
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({ success: false }),
+      );
     });
 
     it("returns 400 if role is invalid", async () => {
@@ -40,7 +44,11 @@ describe("verifyHandler", () => {
 
     it("returns 400 if id is not a number", async () => {
       const res = mockRes();
-      await verifyHandler(mockReq({ role: "RESTAURANT", id: "abc" }), res, mockNext);
+      await verifyHandler(
+        mockReq({ role: "RESTAURANT", id: "abc" }),
+        res,
+        mockNext,
+      );
       expect(res.status).toHaveBeenCalledWith(400);
     });
   });
@@ -52,7 +60,11 @@ describe("verifyHandler", () => {
       });
 
       const res = mockRes();
-      await verifyHandler(mockReq({ role: "RESTAURANT", id: 1 }), res, mockNext);
+      await verifyHandler(
+        mockReq({ role: "RESTAURANT", id: 1 }),
+        res,
+        mockNext,
+      );
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
         success: true,
@@ -66,7 +78,11 @@ describe("verifyHandler", () => {
       });
 
       const res = mockRes();
-      await verifyHandler(mockReq({ role: "DELIVERY_AGENT", id: 2 }), res, mockNext);
+      await verifyHandler(
+        mockReq({ role: "DELIVERY_AGENT", id: 2 }),
+        res,
+        mockNext,
+      );
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
         success: true,
@@ -81,7 +97,11 @@ describe("verifyHandler", () => {
       vi.spyOn(verifyServiceModule, "verifyService").mockRejectedValue(error);
 
       const res = mockRes();
-      await verifyHandler(mockReq({ role: "RESTAURANT", id: 99 }), res, mockNext);
+      await verifyHandler(
+        mockReq({ role: "RESTAURANT", id: 99 }),
+        res,
+        mockNext,
+      );
       expect(mockNext).toHaveBeenCalledWith(error);
     });
   });

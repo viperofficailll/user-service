@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { Request, Response, NextFunction } from "express";
-import { userLoginHandler } from "../user-service/src/controllers/login.controller.js";
-import * as loginServiceModule from "../user-service/src/services/login.service.js";
+import { userLoginHandler } from "../src/controllers/login.controller.js";
+import * as loginServiceModule from "../src/services/login.service.js";
 import { Role } from "../generated/prisma/enums.js";
 
 vi.mock("../user-service/src/services/login.service.js");
